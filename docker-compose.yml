@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  django:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             daphne -b 0.0.0.0 -p 8000 chat_project.asgi:application"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+
+  redis:
+    image: "redis:alpine"
+    restart: always
+    ports:
+      - "6379:6379"
