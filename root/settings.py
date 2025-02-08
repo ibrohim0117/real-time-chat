@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'chat',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -128,7 +129,7 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-ASGI_APPLICATION = "chat_project.asgi.application"
+ASGI_APPLICATION = "root.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
