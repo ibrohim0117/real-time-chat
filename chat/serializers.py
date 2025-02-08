@@ -1,5 +1,8 @@
 from rest_framework import serializers
+from .models import Message
 
-class MessageSerializer(serializers.Serializer):
-    room_name = serializers.CharField(max_length=100)
-    message = serializers.CharField(max_length=500)
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Message
+        fields = ["id", "sender", "receiver", "message", "timestamp"]
+        read_only_fields = ["id", "timestamp"]

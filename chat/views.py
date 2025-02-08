@@ -1,29 +1,32 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
+from rest_framework.permissions import IsAuthenticated
+from .models import Message
 from .serializers import MessageSerializer
 
 
 class SendMessageAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
-        serializer = MessageSerializer(data=request.data)
+        data = request.data.copy()
+        data["sender"] = request.user.id
 
+        serializer = MessageSerializer(data=data)
         if serializer.is_valid():
-            room_name = serializer.validated_data["room_name"]
-            message = serializer.validated_data["message"]
-
-            # WebSocket orqali xabarni yuborish
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"chat_{room_name}",
-                {
-                    "type": "chat_message",
-                    "message": message
-                }
-            )
-
-            return Response({"status": "success", "message": message}, status=status.HTTP_200_OK)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserMessagesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        messages = Message.objects.filter(sender=user) | Message.objects.filter(receiver=user)
+        messages = messages.order_by("-timestamp")
+        serializer = MessageSerializer(messages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
