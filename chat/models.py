@@ -1,7 +1,18 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
+from rest_framework_simplejwt.tokens import RefreshToken
 
-User = get_user_model()
+
+class User(AbstractUser):
+
+    def token(self):
+        refresh = RefreshToken.for_user(self)
+        data = {
+            'refresh_token': str(refresh),
+            'access_token': str(refresh.access_token)
+        }
+        return data
+
 
 class ChatRoom(models.Model):
     user1 = models.ForeignKey(User, related_name="user1_chats", on_delete=models.CASCADE)
