@@ -3,11 +3,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied, NotFound
-from .serializers import UserCreateSerializer
+from drf_spectacular.utils import extend_schema
 
 from .models import Message, ChatRoom, User
-from .serializers import MessageSerializer
+from .serializers import MessageSerializer, UserCreateSerializer, UserCreateResponseSerializer
 
+
+@extend_schema(
+    summary="Chat xonasidagi xabarlar ro'yxati",
+    description="Ma'lum chat xonasidagi xabarlar ro'yxati",
+    responses={
+        200: MessageSerializer(many=True),
+    },
+)
 class ChatMessagesList(generics.ListAPIView):
     """Ma'lum chat xonasidagi xabarlar ro'yxati"""
     serializer_class = MessageSerializer
@@ -28,9 +36,26 @@ class ChatMessagesList(generics.ListAPIView):
         return Message.objects.filter(room__room_name=room_name).order_by("timestamp")
 
 
-
+@extend_schema(
+    request=UserCreateSerializer,
+    responses={
+        201: UserCreateResponseSerializer,
+        400: UserCreateSerializer,
+    },
+    summary="Yangi foydalanuvchi yaratish",
+    description="Yangi foydalanuvchi yaratish va JWT tokenlar olish",
+    tags=["Users"],
+)
 class UserCreateAPIView(APIView):
+    serializer_class = UserCreateSerializer
 
+    @extend_schema(
+        request=UserCreateSerializer,
+        responses={
+            201: UserCreateResponseSerializer,
+            400: UserCreateSerializer,
+        },
+    )
     def post(self, request, *args, **kwargs):
         serializer = UserCreateSerializer(data=request.data)
         if serializer.is_valid():

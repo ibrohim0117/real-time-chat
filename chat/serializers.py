@@ -12,6 +12,7 @@ class MessageSerializer(serializers.ModelSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
 
     class Meta:
         model = User
@@ -24,4 +25,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
         user.set_password(validated_data["password"])
         user.save()
         return user
+
+
+class UserCreateResponseSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    access_token = serializers.CharField()
+    refresh_token = serializers.CharField()
 
